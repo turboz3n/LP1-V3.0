@@ -10,3 +10,4 @@ install:
   - pip install sentence-transformers==2.2.2
 
 predict: predict.py:predict
+ 
