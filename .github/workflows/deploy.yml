@@ -17,13 +17,9 @@ jobs:
           sudo apt install -y python3.10 python3-pip
           python3.10 -m pip install --upgrade pip
 
-      - name: Install Cog
+      - name: Install Cog and dependencies
         run: |
-          python3.10 -m pip install cog
-
-      - name: Install dependencies for Cog
-        run: |
-          python3.10 -m pip install attrs fastapi pydantic requests structlog uvicorn
+          python3.10 -m pip install cog attrs fastapi pydantic requests structlog uvicorn
 
       - name: Login to Replicate and Push
         env:
