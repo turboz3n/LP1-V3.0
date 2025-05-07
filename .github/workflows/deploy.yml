@@ -19,12 +19,12 @@ jobs:
 
       - name: Install Cog and dependencies
         run: |
-          python3.10 -m pip install --force-reinstall cog attrs fastapi pydantic requests structlog uvicorn
+          python3.10 -m pip install cog attrs fastapi pydantic requests structlog uvicorn
           python3.10 -c "import attrs; print('attrs import successful')"
 
       - name: Login to Replicate and Push
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
         run: |
-          python3.10 -m cog login --token $REPLICATE_API_TOKEN
-          python3.10 -m cog push r8.im/turboj3n/lp1v2.3
+          cog login --token $REPLICATE_API_TOKEN
+          cog push r8.im/turboj3n/lp1v2.3
