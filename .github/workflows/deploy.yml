@@ -19,8 +19,7 @@ jobs:
 
       - name: Install Cog and dependencies system-wide
         run: |
-          sudo pip install cog attrs fastapi pydantic requests structlog uvicorn
-          python3.10 -c "import attrs; print('attrs import successful')"
+          sudo pip install cog fastapi pydantic requests structlog uvicorn
 
       - name: Login to Replicate and Push
         env:
