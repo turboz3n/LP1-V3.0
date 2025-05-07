@@ -21,6 +21,10 @@ jobs:
         run: |
           python3.10 -m pip install cog
 
+      - name: Install dependencies for Cog
+        run: |
+          python3.10 -m pip install attrs fastapi pydantic requests structlog uvicorn
+
       - name: Login to Replicate and Push
         env:
           REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
