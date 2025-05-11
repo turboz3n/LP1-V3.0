@@ -102,6 +102,95 @@ class Nova:
             "whoami": lambda _: self.who_am_i(),
             "rememberme": lambda x: self.remember_about_user(*x.split(":", 1)),
             "goal": lambda x: self.add_goal(x.split("goal", 1)[-1].strip()),
+
+            # Knowledge Management
+            "learn": lambda x: self.ingest_knowledge(x),
+            "retrieve": lambda x: self.retrieve_knowledge(x),
+
+            # Advanced Reasoning
+            "simulate": lambda x: self.simulate_scenario(x),
+            "ethics": lambda x: self.evaluate_ethics(x),
+
+            # Code Execution
+            "execute": lambda x: self.execute_code(x),
+
+            # Task Automation
+            "plan": lambda x: self.create_plan(x),
+            "schedule": lambda x: self.schedule_task(x),
+
+            # Multi-Modal Capabilities
+            "analyze_image": lambda x: self.analyze_image(x),
+            "generate_image": lambda x: self.generate_image(x),
+            "analyze_audio": lambda x: self.analyze_audio(x),
+            "transcribe_audio": lambda x: self.transcribe_audio(x),
+
+            # Data Processing
+            "analyze_data": lambda x: self.analyze_data(x),
+            "visualize_data": lambda x: self.visualize_data(x),
+
+            # Interaction and Communication
+            "translate": lambda x: self.translate_text(x),
+            "chat": lambda x: self.chat_with_user(x),
+            "clarify": lambda x: self.clarify_input(x),
+
+            # Self-Improvement
+            "evolve": lambda _: self.evolve(),
+            "add_skill": lambda x: self.add_skill(x),
+
+            # System Management
+            "monitor": lambda _: self.monitor_system(),
+            "optimize": lambda _: self.optimize_performance(),
+
+            # Creative Skills
+            "write_story": lambda x: self.write_story(x),
+            "compose_music": lambda x: self.compose_music(x),
+            "generate_poem": lambda x: self.generate_poem(x),
+
+            # Miscellaneous
+            "joke": lambda _: self.tell_joke(),
+            "fact": lambda _: self.random_fact(),
+            "weather": lambda x: self.get_weather(x),
+
+            # Expanded Skills
+            # Knowledge and Learning
+            "learn_language": lambda x: self.learn_language(x),
+            "explain_concept": lambda x: self.explain_concept(x),
+            "compare_topics": lambda x: self.compare_topics(x),
+
+            # Advanced Reasoning
+            "solve_math": lambda x: self.solve_math(x),
+            "logic_puzzle": lambda x: self.solve_logic_puzzle(x),
+            "predict_trends": lambda x: self.predict_trends(x),
+
+            # Creative Writing
+            "write_essay": lambda x: self.write_essay(x),
+            "generate_script": lambda x: self.generate_script(x),
+            "create_advertisement": lambda x: self.create_advertisement(x),
+
+            # Data Science
+            "clean_data": lambda x: self.clean_data(x),
+            "generate_report": lambda x: self.generate_report(x),
+            "forecast_data": lambda x: self.forecast_data(x),
+
+            # Multi-Modal
+            "generate_video": lambda x: self.generate_video(x),
+            "analyze_video": lambda x: self.analyze_video(x),
+            "generate_chart": lambda x: self.generate_chart(x),
+
+            # Interaction
+            "debate": lambda x: self.debate_topic(x),
+            "recommendation": lambda x: self.recommend_item(x),
+            "summarize_meeting": lambda x: self.summarize_meeting(x),
+
+            # System Utilities
+            "check_disk": lambda _: self.check_disk_space(),
+            "list_processes": lambda _: self.list_running_processes(),
+            "terminate_process": lambda x: self.terminate_process(x),
+
+            # Miscellaneous
+            "generate_password": lambda _: self.generate_password(),
+            "track_habit": lambda x: self.track_habit(x),
+            "set_reminder": lambda x: self.set_reminder(x),
         }
 
     def handle(self, prompt):
@@ -155,24 +244,29 @@ class Nova:
         """
         # Step 1: Use GPT to generate the skill logic
         skill_logic = self.llm.chat([
-            {"role": "system", "content": "You are a highly capable assistant that generates Python functions for new skills."},
+            {"role": "system", "content": "You are a highly capable assistant that generates Python functions for new skills. Ensure the code is valid and complete."},
             {"role": "user", "content": f"Generate a Python function for the skill '{skill_name}' that takes the following input: {skill_args}"}
         ])
 
-        # Step 2: Define the new skill dynamically
+        # Step 2: Log the generated skill logic for debugging
+        log_event(f"Generated skill logic for '{skill_name}': {skill_logic}")
+
+        # Step 3: Validate and execute the generated code
         try:
             exec_globals = {}
-            exec(skill_logic, exec_globals)
+            exec(skill_logic, exec_globals)  # Execute the generated code
             new_skill = exec_globals.get(skill_name)
 
             if not callable(new_skill):
-                return f"Failed to create skill '{skill_name}'. GPT response: {skill_logic}"
+                return f"Failed to create skill '{skill_name}'. The generated code did not define a callable function."
 
-            # Step 3: Add the new skill to the skills dictionary
+            # Step 4: Add the new skill to the skills dictionary
             self.skills[skill_name] = new_skill
 
-            # Step 4: Execute the new skill
+            # Step 5: Execute the new skill
             return new_skill(skill_args)
+        except SyntaxError as e:
+            return f"[Syntax Error in generated skill '{skill_name}']: {e}"
         except Exception as e:
             return f"[Error creating skill '{skill_name}']: {e}"
 
