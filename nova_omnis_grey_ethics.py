@@ -14,6 +14,7 @@ import socket
 import shutil
 from datetime import datetime
 from openai import OpenAI
+import ast
 
 # Constants
 MODEL = "gpt-4"
@@ -231,17 +232,35 @@ class Nova:
         # Step 4: If the skill doesn't exist, create it dynamically
         return self.create_and_execute_skill(skill_name, skill_args)
 
-    def create_and_execute_skill(self, skill_name, skill_args):
+    def create_and_execute_skill(self, skill_name, skill_args, max_retries=5):
         """
-        Dynamically creates a new skill and executes it.
+        Dynamically creates a new skill and executes it, retrying until success.
 
         Args:
             skill_name (str): The name of the new skill.
             skill_args (str): The arguments for the skill.
+            max_retries (int): The maximum number of retries for generating valid code.
 
         Returns:
             str: The result of the skill execution.
         """
+        def validate_python_code(code):
+            """
+            Validates Python code for syntax errors using the `ast` module.
+
+            Args:
+                code (str): The Python code to validate.
+
+            Returns:
+                bool: True if the code is valid, False otherwise.
+            """
+            try:
+                ast.parse(code)
+                return True
+            except SyntaxError as e:
+                log_event(f"[Syntax Error] in generated code: {e}")
+                return False
+
         def sanitize_code(code):
             """
             Sanitizes the generated code by ensuring it contains only the function definition.
@@ -262,42 +281,52 @@ class Nova:
                     sanitized_lines.append(line)
             return "\n".join(sanitized_lines)
 
-        # Step 1: Use GPT to generate the skill logic
-        skill_logic = self.llm.chat([
-            {"role": "system", "content": "You are a highly capable assistant that generates Python functions for new skills. Always respond with valid Python code only, containing only the function definition and its logic. Do not include any comments, variable assignments, or explanations."},
-            {"role": "user", "content": f"Generate a Python function for the skill '{skill_name}' that takes the following input: {skill_args}"}
-        ])
+        retries = 0
+        while retries < max_retries:
+            # Step 1: Use GPT to generate the skill logic
+            skill_logic = self.llm.chat([
+                {"role": "system", "content": "You are a highly capable assistant that generates Python functions for new skills. Always respond with valid Python code only, containing only the function definition and its logic. Do not include any comments, variable assignments, or explanations."},
+                {"role": "user", "content": f"Generate a Python function for the skill '{skill_name}' that takes the following input: {skill_args}"}
+            ])
 
-        # Step 2: Log the generated skill logic for debugging
-        log_event(f"Generated skill logic for '{skill_name}': {skill_logic}")
+            # Step 2: Log the generated skill logic for debugging
+            log_event(f"Generated skill logic for '{skill_name}' (Attempt {retries + 1}): {skill_logic}")
 
-        # Step 3: Sanitize the generated code
-        sanitized_skill_logic = sanitize_code(skill_logic)
-        log_event(f"Sanitized skill logic for '{skill_name}': {sanitized_skill_logic}")
+            # Step 3: Sanitize the generated code
+            sanitized_skill_logic = sanitize_code(skill_logic)
+            log_event(f"Sanitized skill logic for '{skill_name}' (Attempt {retries + 1}): {sanitized_skill_logic}")
 
-        # Step 4: Validate and execute the sanitized code
-        try:
-            exec_globals = {}
-            exec(sanitized_skill_logic, exec_globals)  # Execute the sanitized code
-            new_skill = exec_globals.get(skill_name)
+            # Step 4: Validate the sanitized code
+            if not validate_python_code(sanitized_skill_logic):
+                retries += 1
+                log_event(f"Validation failed for '{skill_name}' (Attempt {retries}). Retrying...")
+                continue  # Retry with refined code
 
-            if not callable(new_skill):
-                return f"Failed to create skill '{skill_name}'. The generated code did not define a callable function."
+            # Step 5: Execute the validated code
+            try:
+                exec_globals = {}
+                exec(sanitized_skill_logic, exec_globals)  # Execute the sanitized code
+                new_skill = exec_globals.get(skill_name)
 
-            # Step 5: Add the new skill to the skills dictionary
-            self.skills[skill_name] = new_skill
+                if not callable(new_skill):
+                    log_event(f"Generated code for '{skill_name}' did not define a callable function. Retrying...")
+                    retries += 1
+                    continue  # Retry with refined code
 
-            # Step 6: Execute the new skill
-            return new_skill(skill_args)
+                # Step 6: Add the new skill to the skills dictionary
+                self.skills[skill_name] = new_skill
 
-        except SyntaxError as e:
-            log_event(f"[Syntax Error] in generated skill '{skill_name}': {e}")
-            log_event(f"Sanitized skill logic: {sanitized_skill_logic}")
-            return f"[Syntax Error] Failed to create skill '{skill_name}'. Please try again."
+                # Step 7: Execute the new skill
+                return new_skill(skill_args)
 
-        except Exception as e:
-            log_event(f"[Error] in generated skill '{skill_name}': {e}")
-            return f"[Error] Failed to create skill '{skill_name}': {e}"
+            except Exception as e:
+                log_event(f"[Error] in generated skill '{skill_name}' (Attempt {retries + 1}): {e}")
+                retries += 1
+                continue  # Retry with refined code
+
+        # If all retries fail, return an error message
+        log_event(f"Failed to create skill '{skill_name}' after {max_retries} attempts.")
+        return f"Failed to create skill '{skill_name}' after {max_retries} attempts. Please try again."
 
     # === Core Skills ===
     def summarize(self, text):
