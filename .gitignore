@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+*.log
+nova_memory.json
+planner.json
+identity.json
+ethical_tensions.json
