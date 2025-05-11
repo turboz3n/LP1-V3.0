@@ -118,7 +118,7 @@ class Nova:
 
         # Step 1: Use GPT to interpret the input and determine the skill
         interpretation = self.llm.chat([
-            {"role": "system", "content": "You are a highly capable assistant that maps user input to skills."},
+            {"role": "system", "content": "You are a highly capable assistant that maps user input to skills. Always respond with a JSON object containing 'skill' and 'args' fields."},
             {"role": "user", "content": f"Interpret the following input and map it to a skill: {prompt}"}
         ])
 
@@ -128,6 +128,8 @@ class Nova:
             skill_name = interpretation_data.get("skill", "").lower()
             skill_args = interpretation_data.get("args", "")
         except json.JSONDecodeError:
+            # Fallback: Handle non-JSON responses
+            log_event(f"Failed to parse GPT response as JSON. Response: {interpretation}")
             return f"Failed to interpret input. GPT response: {interpretation}"
 
         # Step 3: Check if the skill exists
