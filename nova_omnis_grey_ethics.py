@@ -244,7 +244,7 @@ class Nova:
         """
         # Step 1: Use GPT to generate the skill logic
         skill_logic = self.llm.chat([
-            {"role": "system", "content": "You are a highly capable assistant that generates Python functions for new skills. Ensure the code is valid and complete."},
+            {"role": "system", "content": "You are a highly capable assistant that generates Python functions for new skills. Always respond with valid Python code only, without explanations or comments."},
             {"role": "user", "content": f"Generate a Python function for the skill '{skill_name}' that takes the following input: {skill_args}"}
         ])
 
@@ -273,7 +273,7 @@ class Nova:
 
             # Ask GPT to debug and fix the code
             fixed_skill_logic = self.llm.chat([
-                {"role": "system", "content": "You are a highly capable assistant that debugs Python code. Fix any syntax errors in the following code."},
+                {"role": "system", "content": "You are a highly capable assistant that debugs Python code. Fix any syntax errors in the following code and return only the corrected Python code."},
                 {"role": "user", "content": f"Debug and fix this code:\n{skill_logic}"}
             ])
 
