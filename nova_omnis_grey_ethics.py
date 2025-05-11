@@ -24,6 +24,48 @@ TENSION_LOG = "ethical_tensions.json"
 KNOWLEDGE_BASE = "knowledge_base.json"
 
 
+# === Utility Functions ===
+def load_json(path, default):
+    """
+    Loads a JSON file or returns a default value if the file doesn't exist.
+
+    Args:
+        path (str): The file path.
+        default (dict): The default value.
+
+    Returns:
+        dict: The loaded JSON data or the default value.
+    """
+    if os.path.exists(path):
+        with open(path, 'r') as f:
+            return json.load(f)
+    return default
+
+
+def save_json(path, data):
+    """
+    Saves data to a JSON file.
+
+    Args:
+        path (str): The file path.
+        data (dict): The data to save.
+    """
+    with open(path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+def log_event(msg):
+    """
+    Logs an event to the memory file.
+
+    Args:
+        msg (str): The event message.
+    """
+    memory = load_json(MEMORY_PATH, {"logs": []})
+    memory["logs"].append({"time": str(datetime.now()), "event": msg})
+    save_json(MEMORY_PATH, memory)
+
+
 # === NovaLLM Class ===
 class NovaLLM:
     def __init__(self):
