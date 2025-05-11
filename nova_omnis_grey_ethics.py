@@ -265,8 +265,39 @@ class Nova:
 
             # Step 5: Execute the new skill
             return new_skill(skill_args)
+
         except SyntaxError as e:
-            return f"[Syntax Error in generated skill '{skill_name}']: {e}"
+            # Step 6: Handle syntax errors by asking GPT to debug the code
+            log_event(f"[Syntax Error] in generated skill '{skill_name}': {e}")
+            log_event(f"Original skill logic: {skill_logic}")
+
+            # Ask GPT to debug and fix the code
+            fixed_skill_logic = self.llm.chat([
+                {"role": "system", "content": "You are a highly capable assistant that debugs Python code. Fix any syntax errors in the following code."},
+                {"role": "user", "content": f"Debug and fix this code:\n{skill_logic}"}
+            ])
+
+            # Log the fixed skill logic
+            log_event(f"Fixed skill logic for '{skill_name}': {fixed_skill_logic}")
+
+            # Retry executing the fixed code
+            try:
+                exec_globals = {}
+                exec(fixed_skill_logic, exec_globals)  # Execute the fixed code
+                new_skill = exec_globals.get(skill_name)
+
+                if not callable(new_skill):
+                    return f"Failed to create skill '{skill_name}' after debugging. The fixed code did not define a callable function."
+
+                # Add the fixed skill to the skills dictionary
+                self.skills[skill_name] = new_skill
+
+                # Execute the fixed skill
+                return new_skill(skill_args)
+
+            except Exception as e:
+                return f"[Error creating skill '{skill_name}' after debugging]: {e}"
+
         except Exception as e:
             return f"[Error creating skill '{skill_name}']: {e}"
 
