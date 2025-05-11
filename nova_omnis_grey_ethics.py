@@ -251,13 +251,22 @@ class Nova:
             str: The response.
         """
         log_event(f"Prompt: {prompt}")
-        for skill in self.skills:
-            if skill in prompt.lower():
+        prompt_lower = prompt.lower()
+
+        # Debugging: Log available skills and input
+        print(f"[DEBUG] Available skills: {list(self.skills.keys())}")
+        print(f"[DEBUG] User input: {prompt_lower}")
+
+        # Iterate through skills and check for matches
+        for skill, action in self.skills.items():
+            if skill in prompt_lower:  # Match skill name in input
                 try:
-                    return self.skills[skill](prompt)
+                    return action(prompt)
                 except Exception as e:
                     return f"[Error: {e}]"
-        return "No suitable skill matched."
+
+        # If no skill matches, provide a fallback response
+        return "I'm sorry, I couldn't match your input to any of my skills. Could you rephrase or try a different command?"
 
     def evolve(self):
         """
