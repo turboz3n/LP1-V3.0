@@ -52,11 +52,11 @@ async def main():
                     if len(parts) < 3:
                         print("Usage: self improve <filepath>")
                         continue
+                    file_path = parts[2]
+                    if not os.path.isfile(file_path):
+                        print("[Error] File does not exist.")
+                        continue
                     try:
-                        file_path = parts[2]
-                        if not os.path.isfile(file_path):
-                            print("[Error] File does not exist.")
-                            continue
                         with open(file_path, "r", encoding="utf-8") as f:
                             source = f.read()
                         print("[LP1] Proposing full-module rewrite...")
@@ -64,12 +64,13 @@ async def main():
                             "Improve this Python module. Keep functionality the same, but improve clarity, structure, safety, and performance."
                         )
                         proposal = await gpt.chat(prompt, user_prompt=source, task="heavy")
-                        print("Proposed Rewrite:
-" + proposal)
+                        print(f"Proposed Rewrite:\n{proposal}")
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
                             result = swapper.apply(file_path, proposal)
                             print(result)
+                    except OSError as e:
+                        print(f"[File Error] {e}")
                     except Exception as e:
                         print(f"[Improve Error] {e}")
 
@@ -79,8 +80,7 @@ async def main():
                     await feedback.capture(user_input, response)
 
             except (KeyboardInterrupt, EOFError):
-                print("
-[LP1] Shutdown signal received.")
+                print("\n[LP1] Shutdown signal received.")
                 break
 
     await asyncio.gather(
