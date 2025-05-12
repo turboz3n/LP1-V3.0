@@ -23,6 +23,7 @@ class GPTWrapper:
         model = self.model_light if task == "light" else self.model_heavy
         try:
             client = OpenAI()
+            print(f"[DEBUG] Using model: {model}")
             response = client.chat.completions.create(
                 model=model,
                 messages=self.build_prompt("", user_prompt),
