@@ -1,0 +1,11 @@
+ 
+openai
+python-dotenv
+faiss-cpu
+sentence-transformers
+PyPDF2
+python-docx
+openpyxl
+uvicorn
+fastapi
+pytest
