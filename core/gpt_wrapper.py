@@ -1,4 +1,5 @@
 import openai
+from openai import OpenAI
 
 class GPTWrapper:
     def __init__(self, config):
@@ -21,12 +22,13 @@ class GPTWrapper:
     async def chat(self, user_prompt: str, task: str = "light") -> str:
         model = self.model_light if task == "light" else self.model_heavy
         try:
-            response = await openai.ChatCompletion.acreate(
+            client = OpenAI()
+            response = client.chat.completions.create(
                 model=model,
                 messages=self.build_prompt("", user_prompt),
                 temperature=0.7,
                 max_tokens=800
-            )
-            return response.choices[0].message.content.strip()
+            ).choices[0].message
+            return response.content.strip()
         except Exception as e:
             return f"[GPT-{model} Error] {str(e)}"
