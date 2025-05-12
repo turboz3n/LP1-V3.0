@@ -63,7 +63,7 @@ async def main():
                         prompt = (
                             "You are an AI developer assistant. You have access to the full source code of a Python module below.\n"
     "Rewrite and improve this module. Keep all functionality the same, but improve clarity, structure, safety, and performance. "
-    "Return ONLY the full improved code. Do not explain anything. Begin now:\n\n"
+    "Return the explanation first, then the improved code block. Begin now:\n\n"
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
                         print(f"Proposed Rewrite:\n{proposal}")
