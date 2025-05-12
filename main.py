@@ -21,7 +21,7 @@ async def main():
     print("[LP1] Loading core modules")
 
     memory = MemoryManager(config)
-    gpt = GPTDualWrapper(config)
+    gpt = GPTWrapper(config)
     semantic = SemanticMemory(config)
     skills = SkillManager(config, gpt=gpt, memory=memory, semantic=semantic)
     patcher = PatchEngine(config)
