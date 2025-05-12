@@ -2,7 +2,7 @@
 import asyncio
 import os
 from core.config import load_config
-from core.gpt_dual_wrapper import GPTDualWrapper
+from core.gpt_wrapper import GPTWrapper
 from core.skill_manager import SkillManager
 from core.patch_engine import PatchEngine
 from core.memory_manager import MemoryManager
