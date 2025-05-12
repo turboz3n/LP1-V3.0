@@ -54,16 +54,26 @@ async def main():
                         continue
                     try:
                         file_func = parts[2].split(":")
-                        file_path = file_func[0]
-                        fn_name = file_func[1]
-                        summary = next(f['doc'] for f in reflector.extract_functions() if f['file'].endswith(file_path) and f['function'] == fn_name)
+                        if len(file_func) != 2:
+                            print("Invalid format. Use <filename>:<function>")
+                            continue
+                        file_path, fn_name = file_func
+                        summary = next(
+                            (f['doc'] for f in reflector.extract_functions()
+                             if f['file'].endswith(file_path) and f['function'] == fn_name),
+                            None
+                        )
+                        if not summary:
+                            print(f"Function '{fn_name}' not found in '{file_path}'.")
+                            continue
                         proposal = await rewriter.propose_edit(file_path, fn_name, summary)
-                        print("Proposed Rewrite:
-" + proposal)
+                        print("Proposed Rewrite:\n" + proposal)
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
                             result = swapper.apply(file_path, proposal)
                             print(result)
+                        else:
+                            print("Changes discarded.")
                     except Exception as e:
                         print(f"[Improve Error] {e}")
 
@@ -73,14 +83,19 @@ async def main():
                     await feedback.capture(user_input, response)
 
             except (KeyboardInterrupt, EOFError):
-                print("
-[LP1] Shutdown signal received.")
+                print("\n[LP1] Shutdown signal received.")
                 break
 
-    await asyncio.gather(
-        scheduler.run_background_tasks(),
-        interactive_loop()
-    )
+    try:
+        await asyncio.gather(
+            scheduler.run_background_tasks(),
+            interactive_loop()
+        )
+    except asyncio.CancelledError:
+        print("[LP1] Background tasks cancelled.")
+    finally:
+        await scheduler.stop_background_tasks()
+        print("[LP1] Shutdown complete.")
 
 if __name__ == "__main__":
     asyncio.run(main())
