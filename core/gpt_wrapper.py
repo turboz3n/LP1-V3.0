@@ -1,6 +1,6 @@
 import openai
 
-class GPTDualWrapper:
+class GPTWrapper:
     def __init__(self, config):
         self.key = config["openai_api_key"]
         self.model_light = "gpt-3.5-turbo"
