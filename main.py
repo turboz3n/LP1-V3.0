@@ -63,7 +63,7 @@ async def main():
                         prompt = (
                             "Improve this Python module. Keep functionality the same, but improve clarity, structure, safety, and performance."
                         )
-                        proposal = await gpt.chat(prompt, user_prompt=source, task="heavy")
+                        proposal = await gpt.chat(source, task="heavy")
                         print(f"Proposed Rewrite:\n{proposal}")
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
