@@ -19,7 +19,7 @@ class GPTWrapper:
             {"role": "user", "content": user}
         ]
 
-    async def chat(self, user_prompt: str, task: str = "light") -> str:
+    async def chat(self, user_prompt: str, *, task: str = "light") -> str:
         model = self.model_light if task == "light" else self.model_heavy
         try:
             client = OpenAI()
