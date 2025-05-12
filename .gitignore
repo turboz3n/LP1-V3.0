@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Environment
+.env
+*.env
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LP1 runtime data
+data/*
+!data/.gitkeep
+data/rewrites/*
+!data/rewrites/.gitkeep
+
+# Test cache
+*.pytest_cache/
