@@ -6,28 +6,27 @@ class FunctionReflector:
         self.base_dir = base_dir
 
     def extract_functions(self):
-        results = []
+        summaries = []
+        print("[FunctionReflector] Starting scan in:", self.base_dir)
         for root, _, files in os.walk(self.base_dir):
             for file in files:
                 if file.endswith(".py") and not file.startswith("_"):
-                    full_path = os.path.join(root, file)
+                    path = os.path.join(root, file)
+                    print(f"[FunctionReflector] Parsing: {path}")
                     try:
-                        with open(full_path, "r", encoding="utf-8") as f:
-                            code = f.read()
-                        tree = ast.parse(code, filename=full_path)
+                        with open(path, "r", encoding="utf-8") as f:
+                            tree = ast.parse(f.read(), filename=path)
                         for node in ast.walk(tree):
                             if isinstance(node, ast.FunctionDef):
                                 doc = ast.get_docstring(node) or ""
-                                results.append({
-                                    "file": full_path,
+                                summaries.append({
+                                    "file": path,
                                     "function": node.name,
                                     "args": [arg.arg for arg in node.args.args],
                                     "doc": doc[:100].replace("\n", " ")
                                 })
                     except Exception as e:
-                        print(f"[Reflector] Failed to parse {full_path}: {e}")
-                        results.append({
-                            "file": full_path,
-                            "error": str(e)
-                        })
-        return results
+                        print(f"[FunctionReflector] Failed: {path} — {e}")
+                        summaries.append({ "file": path, "error": str(e) })
+        print(f"[FunctionReflector] Total functions: {len(summaries)}")
+        return summaries
