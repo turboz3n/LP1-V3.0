@@ -61,9 +61,11 @@ async def main():
                             source = f.read()
                         print("[LP1] Proposing full-module rewrite...")
                         prompt = (
-                            "Improve this Python module. Keep functionality the same, but improve clarity, structure, safety, and performance."
+                            "You are an AI developer assistant. You have access to the full source code of a Python module below.\n"
+    "Rewrite and improve this module. Keep all functionality the same, but improve clarity, structure, safety, and performance. "
+    "Return ONLY the full improved code. Do not explain anything. Begin now:\n\n"
                         )
-                        proposal = await gpt.chat(source, task="heavy")
+                        proposal = await gpt.chat(prompt + source, task="heavy")
                         print(f"Proposed Rewrite:\n{proposal}")
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
