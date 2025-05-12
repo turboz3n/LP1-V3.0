@@ -4,11 +4,12 @@ import inspect
 from typing import Dict, Callable
 
 class SkillManager:
-    def __init__(self, config, gpt, memory):
+    def __init__(self, config, gpt, memory, semantic):
         self.skills: Dict[str, Callable] = {}
         self.config = config
         self.gpt = gpt
         self.memory = memory
+        self.semantic = semantic
         self.load_skills()
 
     def load_skills(self):
@@ -32,6 +33,7 @@ class SkillManager:
             if any(trigger in user_input.lower() for trigger in triggers):
                 return await skill.handle(user_input, context={
                     "gpt": self.gpt,
-                    "memory": self.memory
+                    "memory": self.memory,
+                    "semantic": self.semantic
                 })
-        return await self.gpt.chat("You are LP1.", user_input)
+        return await self.gpt.chat(user_input, task="heavy")
