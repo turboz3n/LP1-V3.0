@@ -36,7 +36,18 @@ async def main():
                 print("\n[LP1] Shutdown signal received.")
                 break
 
-    await asyncio.gather(scheduler.run_background_tasks(), interactive_loop())
+    # Run the interactive loop and scheduler tasks
+    try:
+        await asyncio.gather(
+            scheduler.run_background_tasks(),
+            interactive_loop()
+        )
+    except asyncio.CancelledError:
+        print("[LP1] Background tasks cancelled.")
+    finally:
+        # Ensure background tasks are stopped when exiting
+        await scheduler.stop_background_tasks()
+        print("[LP1] Shutdown complete.")
 
 if __name__ == "__main__":
     asyncio.run(main())
