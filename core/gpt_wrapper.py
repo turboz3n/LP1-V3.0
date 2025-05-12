@@ -1,14 +1,14 @@
-import openai
+from openai import OpenAI
 
 class GPTWrapper:
     def __init__(self, config):
         self.api_key = config["openai_api_key"]
         self.model = config["model"]
-        openai.api_key = self.api_key
+        self.client = OpenAI()
 
     async def chat(self, system_prompt: str, user_prompt: str) -> str:
         try:
-            response = await openai.ChatCompletion.acreate(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},

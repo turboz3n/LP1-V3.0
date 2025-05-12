@@ -35,10 +35,13 @@ class GoalEngine:
     async def evaluate(self):
         for goal in self.goals:
             if goal["status"] == "pending":
-                result = await self.gpt.chat(
-                    "You are a planning assistant. Evaluate this goal for LP1 and suggest steps:",
-                    goal["description"]
-                )
+                result = self.gpt.chat.completions.create(
+                    model="gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": "You are a planning assistant. Evaluate this goal for LP1 and suggest steps:"},
+                        {"role": "user", "content": goal["description"]}
+                    ]
+                ).choices[0].message
                 self.memory.log("goal", f"{goal['description']} -> {result}")
                 goal["status"] = "processed"
         self.save()
