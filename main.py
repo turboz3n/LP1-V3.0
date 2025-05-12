@@ -50,52 +50,43 @@ async def main():
                 elif user_input.lower().startswith("self improve"):
                     parts = user_input.split()
                     if len(parts) < 3:
-                        print("Usage: self improve <filename>:<function>")
+                        print("Usage: self improve <filepath>")
                         continue
                     try:
-                        file_func = parts[2].split(":")
-                        if len(file_func) != 2:
-                            print("Invalid format. Use <filename>:<function>")
+                        file_path = parts[2]
+                        if not os.path.isfile(file_path):
+                            print("[Error] File does not exist.")
                             continue
-                        file_path, fn_name = file_func
-                        summary = next(
-                            (f['doc'] for f in reflector.extract_functions()
-                             if f['file'].endswith(file_path) and f['function'] == fn_name),
-                            None
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            source = f.read()
+                        print("[LP1] Proposing full-module rewrite...")
+                        prompt = (
+                            "Improve this Python module. Keep functionality the same, but improve clarity, structure, safety, and performance."
                         )
-                        if not summary:
-                            print(f"Function '{fn_name}' not found in '{file_path}'.")
-                            continue
-                        proposal = await rewriter.propose_edit(file_path, fn_name, summary)
-                        print("Proposed Rewrite:\n" + proposal)
+                        proposal = await gpt.chat(prompt, user_prompt=source, task="heavy")
+                        print("Proposed Rewrite:
+" + proposal)
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
                             result = swapper.apply(file_path, proposal)
                             print(result)
-                        else:
-                            print("Changes discarded.")
                     except Exception as e:
                         print(f"[Improve Error] {e}")
 
                 else:
-                    response = await gpt.chat(user_input, task="light")
+                    response = await gpt.chat(user_input)
                     print(f"LP1: {response}")
                     await feedback.capture(user_input, response)
 
             except (KeyboardInterrupt, EOFError):
-                print("\n[LP1] Shutdown signal received.")
+                print("
+[LP1] Shutdown signal received.")
                 break
 
-    try:
-        await asyncio.gather(
-            scheduler.run_background_tasks(),
-            interactive_loop()
-        )
-    except asyncio.CancelledError:
-        print("[LP1] Background tasks cancelled.")
-    finally:
-        await scheduler.stop_background_tasks()
-        print("[LP1] Shutdown complete.")
+    await asyncio.gather(
+        scheduler.run_background_tasks(),
+        interactive_loop()
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
