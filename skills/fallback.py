@@ -12,7 +12,13 @@ class FallbackSkill:
         if not gpt:
             return "[Fallback Error] GPT unavailable."
 
-        response = await gpt.chat("You are LP1, an intelligent assistant.", user_input)
+        response = gpt.chat.completions.create(
+            model="gpt-4.1",
+            messages=[
+                {"role": "system", "content": "You are LP1, an intelligent assistant."},
+                {"role": "user", "content": user_input}
+            ]
+        ).choices[0].message
         if memory:
             memory.log("fallback", f"{user_input} -> {response}")
         return response

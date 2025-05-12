@@ -13,7 +13,13 @@ class CodeWriterSkill:
 
         try:
             prompt = f"Write clean Python code for this request:\n{user_input}"
-            response = await gpt.chat("You are a helpful Python coding assistant.", prompt)
+            response = gpt.chat.completions.create(
+                model="gpt-4.1",
+                messages=[
+                    {"role": "system", "content": "You are a helpful Python coding assistant."},
+                    {"role": "user", "content": prompt}
+                ]
+            ).choices[0].message
             if "import" not in response and "def" not in response:
                 return f"[Code Writer Warning] GPT output might be malformed:\n{response}"
             return response
