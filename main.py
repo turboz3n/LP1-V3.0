@@ -72,7 +72,8 @@ async def main():
                             proposal = proposal.split("```python")[-1].split("```", 1)[0].strip()
                         else:
                             print("[LP1] Warning: No valid Python block found in response.")
-                        continue
+                            continue  # Keep this here to skip only if no valid Python block is found
+
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
                             result = swapper.apply(file_path, proposal)
