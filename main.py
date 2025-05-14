@@ -68,8 +68,8 @@ async def main():
                         proposal = await gpt.chat(prompt + source, task="heavy")
                         print(f"Proposed Rewrite:\n{proposal}")
                         # Extract the Python code block
-                        if "```python" in full_response:
-                            proposal = full_response.split("```python")[-1].split("```", 1)[0].strip()
+                        if "```python" in proposal:
+                            proposal = proposal.split("```python")[-1].split("```", 1)[0].strip()
                         else:
                             print("[LP1] Warning: No valid Python block found in response.")
                         continue
