@@ -1,6 +1,7 @@
 import os
 import importlib
 import inspect
+import traceback
 from typing import Dict, Callable
 
 class SkillManager:
@@ -26,6 +27,7 @@ class SkillManager:
                             self.skills[skill_name] = instance
                 except Exception as e:
                     print(f"[SkillManager] Failed to load {module_name}: {e}")
+                    traceback.print_exc()
 
     async def route(self, user_input: str) -> str:
         for skill in self.skills.values():
