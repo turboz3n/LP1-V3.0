@@ -13,8 +13,8 @@ class Scheduler:
         result = await self.skills.route("system status")
         print(f"[Scheduled Health Check @ {datetime.utcnow().isoformat()}] {result}")
 
-    async def run_background_tasks(self):
-        while True:
+    async def run_background_tasks(self, stop_event):
+        while not stop_event.is_set():
             now = datetime.utcnow()
             for name, coro, interval in self.tasks:
                 last = self.last_run.get(name, datetime.min)
