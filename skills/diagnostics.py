@@ -1,6 +1,8 @@
 import psutil
 import platform
 
+print("[Diagnostics] Loaded from:", __file__)
+
 class DiagnosticsSkill:
     def describe(self):
         return {
