@@ -25,3 +25,7 @@ class Scheduler:
                     except Exception as e:
                         print(f"[Scheduler] Failed task {name}: {e}")
             await asyncio.sleep(10)
+
+    async def shutdown(self):
+        # Cancel any running background tasks here
+        pass
