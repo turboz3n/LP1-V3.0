@@ -1,35 +1,31 @@
+
 import openai
-from openai import OpenAI
 
 class GPTWrapper:
     def __init__(self, config):
-        self.key = config["openai_api_key"]
-        self.model_light = "gpt-3.5-turbo"
-        self.model_heavy = "gpt-4"
-        openai.api_key = self.key
+        self.config = config
+        self.model = config.get("model", "gpt-3.5-turbo")
+        self.api_key = config.get("api_key")
+        openai.api_key = self.api_key
 
-        self.identity = (
-            "You are LP1 v3.0 — a modular AI capable of semantic memory, self-rewriting, goal processing, and skill execution. "
-            "You are not a generic language model."
+    def build_prompt(self, user_input, context=None):
+        if not context:
+            return user_input
+        history = "\n".join(
+            f"{entry['role'].capitalize()}: {entry['content']}" for entry in context
+        )
+        return f"{history}\n\nUser: {user_input}"
+
+    async def chat(self, prompt, task=None, context=None):
+        full_prompt = self.build_prompt(prompt, context)
+
+        print(f"[DEBUG] Using model: {self.model}")
+        messages = [{"role": "user", "content": full_prompt}]
+
+        response = openai.ChatCompletion.create(
+            model=self.model,
+            messages=messages,
+            temperature=0.7
         )
 
-    def build_prompt(self, system, user):
-        return [
-            {"role": "system", "content": self.identity + "\n" + system},
-            {"role": "user", "content": user}
-        ]
-
-    async def chat(self, user_prompt: str, *, task: str = "light") -> str:
-        model = self.model_light if task == "light" else self.model_heavy
-        try:
-            client = OpenAI()
-            print(f"[DEBUG] Using model: {model}")
-            response = client.chat.completions.create(
-                model=model,
-                messages=self.build_prompt("", user_prompt),
-                temperature=0.7,
-                max_tokens=800
-            ).choices[0].message
-            return response.content.strip()
-        except Exception as e:
-            return f"[GPT-{model} Error] {str(e)}"
+        return response["choices"][0]["message"]["content"].strip()
