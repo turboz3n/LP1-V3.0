@@ -1,12 +1,16 @@
+
 import os
 import json
+import time
 from datetime import datetime
+from sentence_transformers import SentenceTransformer, util
 
 class MemoryManager:
     def __init__(self, config):
         self.path = config["memory_file"]
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         self.memory = self._load()
+        self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
     def _load(self):
         if not os.path.exists(self.path):
@@ -22,12 +26,30 @@ class MemoryManager:
             json.dump(self.memory, f, indent=2)
 
     def log(self, role: str, content: str):
+        embedding = self.embedding_model.encode(content, convert_to_tensor=True).tolist()
         self.memory.append({
             "timestamp": datetime.utcnow().isoformat(),
             "role": role,
-            "content": content
+            "content": content,
+            "embedding": embedding
         })
         self.save()
 
-    def recall(self, limit=10):
-        return self.memory[-limit:]
+    def recall(self, query: str, limit: int = 5):
+        if not self.memory:
+            return []
+
+        query_vec = self.embedding_model.encode(query, convert_to_tensor=True)
+        scored = []
+
+        for entry in self.memory:
+            if "embedding" not in entry:
+                continue
+            try:
+                score = util.cos_sim(query_vec, entry["embedding"])[0][0].item()
+                scored.append((score, entry))
+            except Exception:
+                continue
+
+        scored.sort(reverse=True, key=lambda x: x[0])
+        return [entry for _, entry in scored[:limit]]
