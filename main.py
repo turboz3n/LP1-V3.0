@@ -1,4 +1,5 @@
-""" Core LP1 V3.0 Rebuild """
+
+""" Core LP1 V3.0 Rebuild — Restored Skill and Memory Routing """
 import asyncio
 import os
 import contextlib
@@ -71,63 +72,30 @@ async def main():
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
                         print(f"Proposed Rewrite:\n{proposal}")
-                        # Extract the Python code block
                         if "```python" in proposal:
                             proposal = proposal.split("```python")[-1].split("```", 1)[0].strip()
                         else:
                             print("[LP1] Warning: No valid Python block found in response.")
                             continue
-
-                        confirm = input("Apply? (y/n): ").strip().lower()
-                        if confirm == "y":
-                            result = swapper.apply(file_path, proposal)
-                            print(result)
-                    except OSError as e:
-                        print(f"[File Error] {e}")
                     except Exception as e:
-                        print(f"[Improve Error] {e}")
+                        print(f"[LP1] Rewrite failed: {e}")
+                        continue
 
                 else:
-                    response = await gpt.chat(user_input)
-                    print(f"LP1: {response}")
-                    await feedback.capture(user_input, response)
+                    # 🔁 Intelligent skill routing
+                    context = memory.recall(user_input)
+                    if skills.can_handle(user_input):
+                        response = await skills.handle(user_input, context=context)
+                    else:
+                        response = await gpt.chat(user_input, context=context)
 
-            except (KeyboardInterrupt, EOFError):
-                print("\n[LP1] Shutdown signal received.")
+                    print(f"[LP1] {response}")
+
+            except KeyboardInterrupt:
                 stop_event.set()
-                break
+                print("\n[LP1] Session interrupted.")
 
-    async def run_scheduler():
-        try:
-            await scheduler.run_background_tasks(stop_event)
-        except asyncio.CancelledError:
-            pass
-
-    async def shutdown():
-        print("[LP1] Shutting down background tasks...")
-        await scheduler.shutdown()
-        print("[LP1] Shutdown complete.")
-
-    # Start both tasks
-    loop_task = asyncio.create_task(interactive_loop())
-    sched_task = asyncio.create_task(run_scheduler())
-
-    # Wait for either to finish
-    done, pending = await asyncio.wait(
-        [loop_task, sched_task],
-        return_when=asyncio.FIRST_COMPLETED
-    )
-
-    # Signal shutdown to both
-    stop_event.set()
-
-    # Cancel any pending tasks
-    for task in pending:
-        task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
-
-    await shutdown()
+    await interactive_loop()
 
 if __name__ == "__main__":
     try:
