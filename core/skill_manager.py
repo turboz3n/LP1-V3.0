@@ -1,8 +1,9 @@
+
 import os
 import importlib
 import inspect
 import traceback
-from typing import Dict, Callable
+from typing import Dict, Callable, Any
 
 class SkillManager:
     def __init__(self, config, gpt, memory, semantic):
@@ -29,13 +30,18 @@ class SkillManager:
                     print(f"[SkillManager] Failed to load {module_name}: {e}")
                     traceback.print_exc()
 
-    async def route(self, user_input: str) -> str:
+    def can_handle(self, user_input: str) -> bool:
+        lowered = user_input.lower()
         for skill in self.skills.values():
             triggers = skill.describe().get("trigger", [])
-            if any(trigger in user_input.lower() for trigger in triggers):
-                return await skill.handle(user_input, context={
-                    "gpt": self.gpt,
-                    "memory": self.memory,
-                    "semantic": self.semantic
-                })
-        return await self.gpt.chat(user_input, task="heavy")
+            if any(trigger in lowered for trigger in triggers):
+                return True
+        return False
+
+    async def handle(self, user_input: str, context: Any = None) -> str:
+        lowered = user_input.lower()
+        for skill in self.skills.values():
+            triggers = skill.describe().get("trigger", [])
+            if any(trigger in lowered for trigger in triggers):
+                return await skill.handle(user_input, context=context)
+        return "[LP1] No applicable skill found."
