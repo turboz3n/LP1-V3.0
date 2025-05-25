@@ -9,3 +9,4 @@ openpyxl
 uvicorn
 fastapi
 pytest
+sentence-transformers>=2.2.0
