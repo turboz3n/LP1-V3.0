@@ -92,10 +92,17 @@ async def main():
                 print("\n[LP1] Shutdown signal received.")
                 break
 
+    async def shutdown():
+        print("[LP1] Shutting down background tasks...")
+        await scheduler.shutdown()  # You may need to implement this in Scheduler
+        print("[LP1] Shutdown complete.")
+
+    # Run both the scheduler and the interactive loop
     await asyncio.gather(
         scheduler.run_background_tasks(),
         interactive_loop()
     )
+    await shutdown()
 
 if __name__ == "__main__":
     asyncio.run(main())
