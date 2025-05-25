@@ -1,6 +1,7 @@
 """ Core LP1 V3.0 Rebuild """
 import asyncio
 import os
+import contextlib
 from core.config import load_config
 from core.gpt_wrapper import GPTWrapper
 from core.skill_manager import SkillManager
@@ -34,12 +35,15 @@ async def main():
 
     print("[LP1] Initialization complete")
 
+    stop_event = asyncio.Event()
+
     async def interactive_loop():
-        while True:
+        while not stop_event.is_set():
             try:
                 user_input = input("You: ").strip()
                 if user_input.lower() in {"exit", "quit"}:
                     print("[LP1] Session ended.")
+                    stop_event.set()
                     break
 
                 elif user_input.lower().startswith("self reflect"):
@@ -62,8 +66,8 @@ async def main():
                         print("[LP1] Proposing full-module rewrite...")
                         prompt = (
                             "You are an AI developer assistant. You have access to the full source code of a Python module below.\n"
-    "Rewrite and improve this module. Keep all functionality the same, but improve clarity, structure, safety, and performance. "
-    "Return the explanation first, then the improved code block. Begin now:\n\n"
+                            "Rewrite and improve this module. Keep all functionality the same, but improve clarity, structure, safety, and performance. "
+                            "Return the explanation first, then the improved code block. Begin now:\n\n"
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
                         print(f"Proposed Rewrite:\n{proposal}")
@@ -72,7 +76,7 @@ async def main():
                             proposal = proposal.split("```python")[-1].split("```", 1)[0].strip()
                         else:
                             print("[LP1] Warning: No valid Python block found in response.")
-                            continue  # Keep this here to skip only if no valid Python block is found
+                            continue
 
                         confirm = input("Apply? (y/n): ").strip().lower()
                         if confirm == "y":
@@ -90,19 +94,43 @@ async def main():
 
             except (KeyboardInterrupt, EOFError):
                 print("\n[LP1] Shutdown signal received.")
+                stop_event.set()
                 break
+
+    async def run_scheduler():
+        try:
+            await scheduler.run_background_tasks(stop_event)
+        except asyncio.CancelledError:
+            pass
 
     async def shutdown():
         print("[LP1] Shutting down background tasks...")
-        await scheduler.shutdown()  # You may need to implement this in Scheduler
+        await scheduler.shutdown()
         print("[LP1] Shutdown complete.")
 
-    # Run both the scheduler and the interactive loop
-    await asyncio.gather(
-        scheduler.run_background_tasks(),
-        interactive_loop()
+    # Start both tasks
+    loop_task = asyncio.create_task(interactive_loop())
+    sched_task = asyncio.create_task(run_scheduler())
+
+    # Wait for either to finish
+    done, pending = await asyncio.wait(
+        [loop_task, sched_task],
+        return_when=asyncio.FIRST_COMPLETED
     )
+
+    # Signal shutdown to both
+    stop_event.set()
+
+    # Cancel any pending tasks
+    for task in pending:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
     await shutdown()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[LP1] Forced exit.")
