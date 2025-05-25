@@ -89,7 +89,8 @@ async def main():
                         print(f"[Improve Error] {e}")
 
                 else:
-                    response = await gpt.chat(user_input)
+                context = memory.recall(query=user_input)
+                response = await gpt.chat(user_input, context=context)
                     print(f"LP1: {response}")
                     await feedback.capture(user_input, response)
 
