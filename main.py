@@ -69,8 +69,7 @@ async def main():
                             "Rewrite and improve it for structure, safety, and clarity. Maintain all original functionality.\n\n"
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
-                        print(f"Proposed Rewrite:
-{proposal}")
+                        print(f"Proposed Rewrite: {proposal}")
                     except Exception as e:
                         print(f"[LP1] Rewrite failed: {e}")
                     continue
