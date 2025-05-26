@@ -37,27 +37,26 @@ class KnowledgeRecaller:
         matches = []
 
         active_goal_id = None
-for entry in reversed(self.memory.memory):
-    if entry.get("role") == "goal" and entry.get("session_id") == self.memory.session_id:
-        import re
-        match = re.search(r"\[(goal_[a-z0-9]+)\]", entry.get("content", ""))
-        if match:
-            active_goal_id = match.group(1)
-            break
+        for entry in reversed(self.memory.memory):
+            if entry.get("role") == "goal" and entry.get("session_id") == self.memory.session_id:
+                match = re.search(r"\[(goal_[a-z0-9]+)\]", entry.get("content", ""))
+                if match:
+                    active_goal_id = match.group(1)
+                    break
 
-for entry in self.memory.memory:
-    if entry.get("role") != "knowledge":
-        continue
-    if "embedding" not in entry:
-        continue
-    try:
-        score = util.cos_sim(query_vec, entry["embedding"])[0][0].item()
-        # Boost score if entry matches current goal
-        if active_goal_id and entry.get("goal_id") == active_goal_id:
-            score += 0.2
-        matches.append((score, entry))
-    except Exception:
-        continue
+        for entry in self.memory.memory:
+            if entry.get("role") != "knowledge":
+                continue
+            if "embedding" not in entry:
+                continue
+            try:
+                score = util.cos_sim(query_vec, entry["embedding"])[0][0].item()
+                # Boost score if entry matches current goal
+                if active_goal_id and entry.get("goal_id") == active_goal_id:
+                    score += 0.2
+                matches.append((score, entry))
+            except Exception:
+                continue
 
         matches.sort(reverse=True, key=lambda x: x[0])
         if not matches or matches[0][0] < 0.5:
