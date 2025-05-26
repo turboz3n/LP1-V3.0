@@ -4,12 +4,14 @@ import json
 import time
 from datetime import datetime
 from sentence_transformers import SentenceTransformer, util
+from uuid import uuid4
 
 class MemoryManager:
     def __init__(self, config):
         self.path = config["memory_file"]
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         self.memory = self._load()
+        self.session_id = uuid4().hex  # New session ID for current boot
         self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
     def _load(self):
@@ -31,7 +33,8 @@ class MemoryManager:
             "timestamp": datetime.utcnow().isoformat(),
             "role": role,
             "content": content,
-            "embedding": embedding
+            "embedding": embedding,
+            "session_id": self.session_id
         })
         self.save()
 
@@ -43,6 +46,8 @@ class MemoryManager:
         scored = []
 
         for entry in self.memory:
+            if entry.get("session_id") != self.session_id:
+                continue
             if "embedding" not in entry:
                 continue
             try:
