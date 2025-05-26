@@ -31,7 +31,26 @@ class KnowledgeBuilder:
 
         summary = await self.gpt.chat(prompt, model="gpt-4")
 
-        # Use proper log method to store knowledge and generate embedding
-        self.memory.log("knowledge", summary)
+        # Check if there's an active goal in memory and tag it
+        goal_id = None
+        for entry in reversed(self.memory.memory):
+            if entry.get("role") == "goal" and entry.get("session_id") == self.memory.session_id:
+                match = re.search(r"\[(goal_[a-z0-9]+)\]", entry.get("content", ""))
+                if match:
+                    goal_id = match.group(1)
+                    break
+
+        embedding = self.memory.embedding_model.encode(summary, convert_to_tensor=True).tolist()
+        entry = {
+            "role": "knowledge",
+            "content": summary,
+            "embedding": embedding,
+            "session_id": self.memory.session_id
+        }
+        if goal_id:
+            entry["goal_id"] = goal_id
+
+        self.memory.memory.append(entry)
+        self.memory.save()
 
         return "Learned and stored."
