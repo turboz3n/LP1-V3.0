@@ -14,7 +14,7 @@ from core.semantic_memory import SemanticMemory
 from core.self_reflector import FunctionReflector
 from core.code_rewriter import CodeRewriter
 from core.live_swapper import LiveSwapper
-from intent_router import IntentRouter
+from core.intent_router import IntentRouter
 
 async def main():
     config = load_config()
