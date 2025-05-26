@@ -1,4 +1,3 @@
-
 import asyncio
 import os
 import contextlib
@@ -86,8 +85,7 @@ async def main():
                     # LP1's internal self-awareness note
                     meta_context = (
                         "You are LP1, a modular AI assistant with persistent semantic memory, "
-                        "modular skills, self-reflection, code rewriting, and background scheduling.
-"
+                        "modular skills, self-reflection, code rewriting, and background scheduling.\n"
                     )
                     prompt = meta_context + user_input
                     response = await gpt.chat(prompt, context=context)
