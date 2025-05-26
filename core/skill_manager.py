@@ -45,3 +45,8 @@ class SkillManager:
             if any(trigger in lowered for trigger in triggers):
                 return await skill.handle(user_input, context=context)
         return "[LP1] No applicable skill found."
+
+    async def route(self, user_input: str, context: Any = None) -> str:
+        if self.can_handle(user_input):
+            return await self.handle(user_input, context=context)
+        return "[SkillManager] No matching skill found."
