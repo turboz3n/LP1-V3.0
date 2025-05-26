@@ -1,5 +1,6 @@
 
 from typing import Any
+import re
 
 class KnowledgeBuilder:
     def __init__(self, gpt=None, memory=None):
@@ -14,8 +15,6 @@ class KnowledgeBuilder:
         }
 
     async def handle(self, user_input: str, context: Any = None) -> str:
-        import re
-
         if not self.gpt or not self.memory:
             return "System error: GPT or Memory not initialized in knowledge builder."
 
@@ -32,12 +31,7 @@ class KnowledgeBuilder:
 
         summary = await self.gpt.chat(prompt, model="gpt-4")
 
-        self.memory.memory.append({
-            "role": "knowledge",
-            "topic": topic,
-            "content": summary,
-            "session_id": self.memory.session_id
-        })
-        self.memory.save()
+        # Use proper log method to store knowledge and generate embedding
+        self.memory.log("knowledge", summary)
 
         return "Learned and stored."
