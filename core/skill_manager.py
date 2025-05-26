@@ -6,12 +6,13 @@ import traceback
 from typing import Dict, Callable, Any
 
 class SkillManager:
-    def __init__(self, config, gpt, memory, semantic):
+    def __init__(self, config, gpt, memory, semantic, goal_engine=None):
         self.skills: Dict[str, Callable] = {}
         self.config = config
         self.gpt = gpt
         self.memory = memory
         self.semantic = semantic
+        self.goal_engine = goal_engine
         self.load_skills()
 
     def load_skills(self):
@@ -29,6 +30,8 @@ class SkillManager:
                                 kwargs["gpt"] = self.gpt
                             if "memory" in init_args:
                                 kwargs["memory"] = self.memory
+                            if "goal_engine" in init_args:
+                                kwargs["goal_engine"] = self.goal_engine
                             instance = obj(**kwargs)
                             skill_name = instance.describe().get("name", filename[:-3])
                             self.skills[skill_name] = instance
