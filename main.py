@@ -67,9 +67,7 @@ async def main():
                         print("[LP1] Proposing full-module rewrite...")
                         prompt = (
                             "You are LP1, a modular AI architecture. The following file is a core component. "
-                            "Rewrite and improve it for structure, safety, and clarity. Maintain all original functionality.
-
-"
+                            "Rewrite and improve it for structure, safety, and clarity. Maintain all original functionality.\n\n"
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
                         print(f"Proposed Rewrite:
