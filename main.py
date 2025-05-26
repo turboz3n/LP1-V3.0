@@ -16,6 +16,9 @@ from core.code_rewriter import CodeRewriter
 from core.live_swapper import LiveSwapper
 from core.intent_router import IntentRouter
 
+last_response = None
+last_input = None
+
 async def main():
     config = load_config()
 
@@ -78,7 +81,18 @@ async def main():
                     continue
 
                 # Use the centralized intent router
+                
+                global last_input, last_response
+                if user_input.lower() in {"yes", "no", "skip"}:
+                    if "feedback_handler" in skills.skills:
+                        fh = skills.skills["feedback_handler"]
+                        fh.set_context(last_input, last_response)
+                        response = await fh.handle(user_input)
+                        print(f"LP1: {response}")
+                        continue
                 response = await router.respond(user_input)
+                last_input = user_input
+                last_response = response
                 print(f"LP1: {response}")
                 await feedback.capture(user_input, response)
 
