@@ -1,3 +1,4 @@
+
 import openai
 from openai import AsyncOpenAI
 
@@ -10,10 +11,16 @@ class GPTWrapper:
 
     def build_messages(self, user_prompt, context=None):
         messages = []
+        allowed_roles = {"user", "assistant", "system", "function", "tool", "developer"}
         if context:
             for entry in context:
+                role = entry.get("role", "user")
+                if role not in allowed_roles:
+                    # Recast knowledge and other entries to 'system' role
+                    role = "system"
+                    entry["content"] = f"(Stored memory) {entry['content']}"
                 messages.append({
-                    "role": entry.get("role", "user"),
+                    "role": role,
                     "content": entry.get("content", "")
                 })
         messages.append({"role": "user", "content": user_prompt})
