@@ -2,6 +2,10 @@
 from typing import Any
 
 class KnowledgeBuilder:
+    def __init__(self, gpt=None, memory=None):
+        self.gpt = gpt
+        self.memory = memory
+
     def describe(self):
         return {
             "name": "knowledge_builder",
@@ -12,15 +16,8 @@ class KnowledgeBuilder:
     async def handle(self, user_input: str, context: Any = None) -> str:
         import re
 
-        if hasattr(context, "gpt"):
-            gpt = context.gpt
-        else:
-            gpt = context["gpt"]
-
-        if hasattr(context, "memory"):
-            memory = context.memory
-        else:
-            memory = context["memory"]
+        if not self.gpt or not self.memory:
+            return "System error: GPT or Memory not initialized in knowledge builder."
 
         topic_match = re.search(r"(learn about|study|research|look into) (.+)", user_input.lower())
         if not topic_match:
@@ -33,14 +30,14 @@ class KnowledgeBuilder:
             f"Summarize it for internal storage only. No conversational formatting, no headers, no user instructions."
         )
 
-        summary = await gpt.chat(prompt, model="gpt-4")
+        summary = await self.gpt.chat(prompt, model="gpt-4")
 
-        memory.memory.append({
+        self.memory.memory.append({
             "role": "knowledge",
             "topic": topic,
             "content": summary,
-            "session_id": memory.session_id
+            "session_id": self.memory.session_id
         })
-        memory.save()
+        self.memory.save()
 
         return "Learned and stored."
