@@ -1,3 +1,4 @@
+
 import asyncio
 from datetime import datetime, timedelta
 
@@ -14,6 +15,7 @@ class Scheduler:
         print(f"[Scheduled Health Check @ {datetime.utcnow().isoformat()}] {result}")
 
     async def run_background_tasks(self, stop_event):
+        await asyncio.sleep(5)  # Delay scheduler startup
         while not stop_event.is_set():
             now = datetime.utcnow()
             for name, coro, interval in self.tasks:
