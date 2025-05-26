@@ -23,7 +23,11 @@ class SkillManager:
                     module = importlib.import_module(module_name)
                     for _, obj in inspect.getmembers(module, inspect.isclass):
                         if hasattr(obj, "describe") and hasattr(obj, "handle"):
-                            instance = obj(gpt=self.gpt, memory=self.memory)
+                            init_args = inspect.signature(obj.__init__).parameters
+                            if "gpt" in init_args and "memory" in init_args:
+                                instance = obj(gpt=self.gpt, memory=self.memory)
+                            else:
+                                instance = obj()
                             skill_name = instance.describe().get("name", filename[:-3])
                             self.skills[skill_name] = instance
                 except Exception as e:
