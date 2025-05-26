@@ -25,7 +25,7 @@ async def main():
     memory = MemoryManager(config)
     gpt = GPTWrapper(config)
     semantic = SemanticMemory(config)
-    skills = SkillManager(config, gpt=gpt, memory=memory, semantic=semantic)
+    skills = SkillManager(config, gpt=gpt, memory=memory, semantic=semantic, goal_engine=goals)
     patcher = PatchEngine(config)
     feedback = FeedbackEngine(config)
     scheduler = Scheduler(config, skills)
