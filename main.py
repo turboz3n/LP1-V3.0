@@ -1,4 +1,4 @@
-""" Core LP1 V3.0 Rebuild """
+
 import asyncio
 import os
 import contextlib
@@ -41,18 +41,18 @@ async def main():
         while not stop_event.is_set():
             try:
                 user_input = input("You: ").strip()
-                memory.log("user", user_input)
                 if user_input.lower() in {"exit", "quit"}:
                     print("[LP1] Session ended.")
                     stop_event.set()
                     break
 
-                elif user_input.lower().startswith("self reflect"):
+                if user_input.lower().startswith("self reflect"):
                     funcs = reflector.extract_functions()
                     for f in funcs[:15]:
                         print(f"{f['file']} -> {f.get('function', '?')}({', '.join(f.get('args', []))}): {f.get('doc', '')}")
+                    continue
 
-                elif user_input.lower().startswith("self improve"):
+                if user_input.lower().startswith("self improve"):
                     parts = user_input.split()
                     if len(parts) < 3:
                         print("Usage: self improve <filepath>")
@@ -66,33 +66,37 @@ async def main():
                             source = f.read()
                         print("[LP1] Proposing full-module rewrite...")
                         prompt = (
-                            "You are an AI developer assistant. You have access to the full source code of a Python module below.\n"
-                            "Rewrite and improve this module. Keep all functionality the same, but improve clarity, structure, safety, and performance. "
-                            "Return the explanation first, then the improved code block. Begin now:\n\n"
+                            "You are LP1, a modular AI architecture. The following file is a core component. "
+                            "Rewrite and improve it for structure, safety, and clarity. Maintain all original functionality.
+
+"
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
-                        print(f"Proposed Rewrite:\n{proposal}")
-                        # Extract the Python code block
-                        if "```python" in proposal:
-                            proposal = proposal.split("```python")[-1].split("```", 1)[0].strip()
-                        else:
-                            print("[LP1] Warning: No valid Python block found in response.")
-                            continue
-
-                        confirm = input("Apply? (y/n): ").strip().lower()
-                        if confirm == "y":
-                            result = swapper.apply(file_path, proposal)
-                            print(result)
-                    except OSError as e:
-                        print(f"[File Error] {e}")
+                        print(f"Proposed Rewrite:
+{proposal}")
                     except Exception as e:
-                        print(f"[Improve Error] {e}")
+                        print(f"[LP1] Rewrite failed: {e}")
+                    continue
 
+                # Memory + Skill Routing + GPT Fallback
+                memory.log("user", user_input)
+                context = memory.recall(query=user_input)
+
+                if skills.can_handle(user_input):
+                    response = await skills.handle(user_input, context=context)
                 else:
-                    context = memory.recall(query=user_input)
-                    response = await gpt.chat(user_input, context=context)
-                    print(f"LP1: {response}")
-                    await feedback.capture(user_input, response)
+                    # LP1's internal self-awareness note
+                    meta_context = (
+                        "You are LP1, a modular AI assistant with persistent semantic memory, "
+                        "modular skills, self-reflection, code rewriting, and background scheduling.
+"
+                    )
+                    prompt = meta_context + user_input
+                    response = await gpt.chat(prompt, context=context)
+
+                memory.log("assistant", response)
+                print(f"LP1: {response}")
+                await feedback.capture(user_input, response)
 
             except (KeyboardInterrupt, EOFError):
                 print("\n[LP1] Shutdown signal received.")
@@ -110,20 +114,16 @@ async def main():
         await scheduler.shutdown()
         print("[LP1] Shutdown complete.")
 
-    # Start both tasks
     loop_task = asyncio.create_task(interactive_loop())
     sched_task = asyncio.create_task(run_scheduler())
 
-    # Wait for either to finish
     done, pending = await asyncio.wait(
         [loop_task, sched_task],
         return_when=asyncio.FIRST_COMPLETED
     )
 
-    # Signal shutdown to both
     stop_event.set()
 
-    # Cancel any pending tasks
     for task in pending:
         task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
