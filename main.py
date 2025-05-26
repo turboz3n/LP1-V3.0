@@ -1,3 +1,4 @@
+
 import asyncio
 import os
 import contextlib
@@ -13,6 +14,7 @@ from core.semantic_memory import SemanticMemory
 from core.self_reflector import FunctionReflector
 from core.code_rewriter import CodeRewriter
 from core.live_swapper import LiveSwapper
+from intent_router import IntentRouter
 
 async def main():
     config = load_config()
@@ -31,6 +33,7 @@ async def main():
     reflector = FunctionReflector(os.getcwd())
     rewriter = CodeRewriter(gpt)
     swapper = LiveSwapper()
+    router = IntentRouter(gpt, skills, memory)
 
     print("[LP1] Initialization complete")
 
@@ -69,27 +72,13 @@ async def main():
                             "Rewrite and improve it for structure, safety, and clarity. Maintain all original functionality.\n\n"
                         )
                         proposal = await gpt.chat(prompt + source, task="heavy")
-                        print(f"Proposed Rewrite: {proposal}")
+                        print(f"Proposed Rewrite:\n{proposal}")
                     except Exception as e:
                         print(f"[LP1] Rewrite failed: {e}")
                     continue
 
-                # Memory + Skill Routing + GPT Fallback
-                memory.log("user", user_input)
-                context = memory.recall(query=user_input)
-
-                if skills.can_handle(user_input):
-                    response = await skills.handle(user_input, context=context)
-                else:
-                    # LP1's internal self-awareness note
-                    meta_context = (
-                        "You are LP1, a modular AI assistant with persistent semantic memory, "
-                        "modular skills, self-reflection, code rewriting, and background scheduling.\n"
-                    )
-                    prompt = meta_context + user_input
-                    response = await gpt.chat(prompt, context=context)
-
-                memory.log("assistant", response)
+                # Use the centralized intent router
+                response = await router.respond(user_input)
                 print(f"LP1: {response}")
                 await feedback.capture(user_input, response)
 
