@@ -24,18 +24,24 @@ class MemoryManager:
             return []
 
     def save(self):
-        with open(self.path, "w", encoding="utf-8") as f:
-            json.dump(self.memory, f, indent=2)
+        try:
+            print(f"[MemoryManager] Saving memory to: {self.path}")
+            with open(self.path, "w", encoding="utf-8") as f:
+                json.dump(self.memory, f, indent=2)
+        except Exception as e:
+            print(f"[MemoryManager] Save failed: {e}")
 
     def log(self, role: str, content: str):
         embedding = self.embedding_model.encode(content, convert_to_tensor=True).tolist()
-        self.memory.append({
+        entry = {
             "timestamp": datetime.utcnow().isoformat(),
             "role": role,
             "content": content,
             "embedding": embedding,
             "session_id": self.session_id
-        })
+        }
+        print(f"[MemoryManager] Logging new memory entry: role={role}, content preview={content[:60]}")
+        self.memory.append(entry)
         self.save()
 
     def recall(self, query: str, limit: int = 5):
