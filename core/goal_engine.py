@@ -1,6 +1,8 @@
+
 import json
 import os
 from datetime import datetime
+from uuid import uuid4
 
 class GoalEngine:
     def __init__(self, config, memory, gpt):
@@ -24,13 +26,26 @@ class GoalEngine:
             json.dump(self.goals, f, indent=2)
 
     def add_goal(self, description: str):
+        goal_id = "goal_" + uuid4().hex[:8]
         goal = {
+            "goal_id": goal_id,
             "description": description,
             "created": datetime.utcnow().isoformat(),
-            "status": "pending"
+            "status": "active"
         }
         self.goals.append(goal)
+        self.memory.log("goal", f"[{goal_id}] {description}")
         self.save()
+        return goal_id
+
+    def get_active_goals(self):
+        return [g for g in self.goals if g.get("status") == "active"]
+
+    def get_goal_by_id(self, goal_id):
+        for goal in self.goals:
+            if goal.get("goal_id") == goal_id:
+                return goal
+        return None
 
     async def evaluate(self):
         for goal in self.goals:
