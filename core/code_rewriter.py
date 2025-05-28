@@ -1,10 +1,7 @@
 import difflib
 import os
-from core.gpt_wrapper import GPTWrapper
 
 class CodeRewriter:
-    def __init__(self, gpt: GPTWrapper):
-        self.gpt = gpt
 
     async def propose_edit(self, path: str, target_fn: str, summary: str) -> str:
         try:
@@ -16,7 +13,6 @@ class CodeRewriter:
                 f"Its summary is: {summary}\n"
                 "Improve clarity, safety, or performance if possible. Respond ONLY with valid updated code, no explanation."
             )
-            patch = await self.gpt.chat("You are a Python code editor.", prompt)
             return patch if patch.strip().startswith("import") or "def" in patch else "[Rejected: Invalid response]"
         except Exception as e:
             return f"[Rewriter Error] {e}"

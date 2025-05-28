@@ -8,7 +8,6 @@ class GoalEngine:
     def __init__(self, config, memory, gpt):
         self.path = os.path.join(config["data_path"], "goals.json")
         self.memory = memory
-        self.gpt = gpt
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         self.goals = self._load()
 
@@ -50,8 +49,6 @@ class GoalEngine:
     async def evaluate(self):
         for goal in self.goals:
             if goal["status"] == "pending":
-                result = self.gpt.chat.completions.create(
-                    model="gpt-4.1",
                     messages=[
                         {"role": "system", "content": "You are a planning assistant. Evaluate this goal for LP1 and suggest steps:"},
                         {"role": "user", "content": goal["description"]}

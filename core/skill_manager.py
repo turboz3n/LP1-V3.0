@@ -9,7 +9,6 @@ class SkillManager:
     def __init__(self, config, gpt, memory, semantic, goal_engine=None):
         self.skills: Dict[str, Callable] = {}
         self.config = config
-        self.gpt = gpt
         self.memory = memory
         self.semantic = semantic
         self.goal_engine = goal_engine
@@ -26,8 +25,6 @@ class SkillManager:
                         if hasattr(obj, "describe") and hasattr(obj, "handle"):
                             init_args = inspect.signature(obj.__init__).parameters
                             kwargs = {}
-                            if "gpt" in init_args:
-                                kwargs["gpt"] = self.gpt
                             if "memory" in init_args:
                                 kwargs["memory"] = self.memory
                             if "goal_engine" in init_args:
