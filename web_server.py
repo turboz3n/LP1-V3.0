@@ -4,7 +4,6 @@ import uvicorn
 import asyncio
 from core.config import load_config
 from core.skill_manager import SkillManager
-from core.gpt_wrapper import GPTWrapper
 from core.patch_engine import PatchEngine
 from core.memory_manager import MemoryManager
 from core.scheduler import Scheduler
@@ -19,7 +18,6 @@ class Query(BaseModel):
 
 config = load_config()
 memory = MemoryManager(config)
-gpt = GPTWrapper(config)
 semantic = SemanticMemory(config)
 skills = SkillManager(config, gpt=gpt, memory=memory, semantic=semantic)
 feedback = FeedbackEngine(config)

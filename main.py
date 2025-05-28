@@ -3,7 +3,6 @@ import asyncio
 import os
 import contextlib
 from core.config import load_config
-from core.gpt_wrapper import GPTWrapper
 from core.skill_manager import SkillManager
 from core.patch_engine import PatchEngine
 from core.memory_manager import MemoryManager
@@ -26,7 +25,6 @@ async def main():
     print("[LP1] Loading core modules")
 
     memory = MemoryManager(config)
-    gpt = GPTWrapper(config)
     semantic = SemanticMemory(config)
     goals = GoalEngine(config, memory=memory, gpt=gpt)
     skills = SkillManager(config, gpt=gpt, memory=memory, semantic=semantic, goal_engine=goals)
