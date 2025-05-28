@@ -7,14 +7,12 @@ class CodeWriterSkill:
         }
 
     async def handle(self, user_input: str, context: dict) -> str:
-        gpt = context.get("gpt")
         if not gpt:
             return "[Code Writer Error] GPT context unavailable."
 
         try:
             prompt = f"Write clean Python code for this request:\n{user_input}"
             response = gpt.chat.completions.create(
-                model="gpt-4.1",
                 messages=[
                     {"role": "system", "content": "You are a helpful Python coding assistant."},
                     {"role": "user", "content": prompt}

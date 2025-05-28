@@ -4,7 +4,6 @@ import re
 
 class KnowledgeBuilder:
     def __init__(self, gpt=None, memory=None):
-        self.gpt = gpt
         self.memory = memory
 
     def describe(self):
@@ -15,7 +14,6 @@ class KnowledgeBuilder:
         }
 
     async def handle(self, user_input: str, context: Any = None) -> str:
-        if not self.gpt or not self.memory:
             return "System error: GPT or Memory not initialized in knowledge builder."
 
         topic_match = re.search(r"(learn about|study|research|look into) (.+)", user_input.lower())
@@ -29,7 +27,6 @@ class KnowledgeBuilder:
             f"Summarize it for internal storage only. No conversational formatting, no headers, no user instructions."
         )
 
-        summary = await self.gpt.chat(prompt, model="gpt-4")
 
         # Check if there's an active goal in memory and tag it
         goal_id = None

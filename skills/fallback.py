@@ -7,13 +7,11 @@ class FallbackSkill:
         }
 
     async def handle(self, user_input: str, context: dict) -> str:
-        gpt = context.get("gpt")
         memory = context.get("memory")
         if not gpt:
             return "[Fallback Error] GPT unavailable."
 
         response = gpt.chat.completions.create(
-            model="gpt-4.1",
             messages=[
                 {"role": "system", "content": "You are LP1, an intelligent assistant."},
                 {"role": "user", "content": user_input}
