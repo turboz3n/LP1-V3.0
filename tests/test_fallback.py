@@ -8,5 +8,4 @@ class DummyGPT:
 @pytest.mark.asyncio
 async def test_fallback_response():
     skill = FallbackSkill()
-    output = await skill.handle("hello", {"gpt": DummyGPT()})
     assert output.startswith("GPT:")
